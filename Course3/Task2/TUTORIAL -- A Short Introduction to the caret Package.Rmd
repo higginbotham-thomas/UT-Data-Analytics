@@ -1,0 +1,74 @@
+---
+title: "A Short Introduction to the caret Package Tutorial"
+output: html_notebook
+---
+
+The code in this notebook comes from "A Short Introduction to the caret Package
+By Max Kuhn, August 6, 2015
+
+install caret:
+
+```{r}
+install.packages("caret", dependencies = c("Depends", "Suggests"))
+```
+
+Had an error installing sjPlot, because of ggeffects not being available
+
+Attempting installation using instructions from https://www.rdocumentation.org/packages/sjPlot/versions/2.8.12
+```{r}
+library(devtools)
+devtools::install_github("strengejacke/sjPlot")
+```
+Also had an issue: ERROR: dependencies 'hardhat', 'modelenv' are not available for package 'workflows'
+```{r}
+install.packages("hardhat")
+```
+
+```{r}
+install.packages("modelenv")
+```
+
+```{r}
+install.packages("workflows")
+```
+
+ERROR: dependencies 'ggsci', 'ggsignif', 'rstatix' are not available for package 'ggpubr'
+```{r}
+install.packages("ggsci")
+install.packages("ggsignif")
+install.packages("rstatix")
+install.packages("ggpubr")
+```
+
+ERROR: dependencies 'phylolm', 'phyr' are not available for package 'rr2'
+```{r}
+install.packages("pyholm")
+install.packages("phyr")
+install.packages("rr2")
+```
+
+ERROR: dependencies 'bigD', 'juicyjuice' are not available for package 'gt'
+```{r}
+install.packages("bigD")
+install.packages("juicyjuice")
+install.packages("gt")
+```
+
+ERROR: lazy loading failed for package 'trajectories'
+```{r}
+install.packages("intervals")
+install.packages("trajectories")
+```
+
+Error: package or namespace load failed for 'svDialogs' in loadNamespace(i, c(lib.loc, .libPaths()), versionCheck = vI[[i]]):
+ there is no package called 'svGUI'
+ 
+```{r}
+install.packages("svGUI")
+install.packages("svDialogs")
+```
+ERROR: lazy loading failed for package 'cgam'
+```{r}
+install.packages("cgam")
+```
+

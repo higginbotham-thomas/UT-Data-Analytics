@@ -11,64 +11,117 @@ install caret:
 ```{r}
 install.packages("caret", dependencies = c("Depends", "Suggests"))
 ```
-
-Had an error installing sjPlot, because of ggeffects not being available
-
-Attempting installation using instructions from https://www.rdocumentation.org/packages/sjPlot/versions/2.8.12
+Load libraries:
 ```{r}
-library(devtools)
-devtools::install_github("strengejacke/sjPlot")
+library(caret)
+library(mlbench)
 ```
-Also had an issue: ERROR: dependencies 'hardhat', 'modelenv' are not available for package 'workflows'
+Load the Sonar data
 ```{r}
-install.packages("hardhat")
+data(Sonar)
 ```
 
+The goal is to predict the two classes (M for metal cylinder or R for rock)
+
+First split the data into two groups: a training set and a test set using the createDataPartition function
+
 ```{r}
-install.packages("modelenv")
+set.seed(107)
+inTrain <- createDataPartition(y = Sonar$Class,
+                                            ## the outcome data are needed
+                                            p = .75,
+                                            ## The percentage of data in the
+                                            ## training set
+                                            list = FALSE)
+                                            ## the format of the results
+
+## The output is a set of integers for the rows of Sonar
+## that belong in the training set.
+str(inTrain)
+```
+
+By default, createDataPartition does a stratified random split of the data. To partition the data:
+
+```{r}
+training <- Sonar[ inTrain,]
+testing  <- Sonar[-inTrain,]
+nrow(training)
 ```
 
 ```{r}
-install.packages("workflows")
+nrow(testing)
 ```
 
-ERROR: dependencies 'ggsci', 'ggsignif', 'rstatix' are not available for package 'ggpubr'
+Tune a partial least squares discriminant analysis (PLSDA) model over the number of PLS components that should be retained:
+
+Basic syntax:
 ```{r}
-install.packages("ggsci")
-install.packages("ggsignif")
-install.packages("rstatix")
-install.packages("ggpubr")
+plsFit <- train(Class ~ .,
+                data = training,
+                method = "pls",
+                ## Center and scale the predictors for the training
+                ## set and all future samples.
+                preProc = c("center", "scale"))
 ```
 
-ERROR: dependencies 'phylolm', 'phyr' are not available for package 'rr2'
+By default, the function will tune over three values of each tuning parameter.
+
+The simple bootstrap is used by default. Next example uses three repeats of 10-fold cross validation
+
+If unspecified, overall accuracy and the Kappa statistic are computed. For regression models, root mean squared error and R2 are computed. Next example will be altered to estimate the area under the ROC curve, the sensitivity and specificity.
+
+Use tuneLength or tuneGrid arguments to change the candidate values of the tuning parameters:
+
 ```{r}
-install.packages("pyholm")
-install.packages("phyr")
-install.packages("rr2")
+plsFit <- train(Class ~ .,
+                data = training,
+                method = "pls",
+                tuneLength = 15,
+                ##this one is new compared to the first example
+                preProc = c("center", "scale"))
 ```
 
-ERROR: dependencies 'bigD', 'juicyjuice' are not available for package 'gt'
+Modify the resampling method using trainControl function.
+
+method option controls the type of resampling, default is "boot"
+
+repeatedcv used to specify repeated K-fold cross-validation, "repeats" for the number of repititions.
+
+"number" controls K and defaults to 10
+
 ```{r}
-install.packages("bigD")
-install.packages("juicyjuice")
-install.packages("gt")
+ctrl <- trainControl (method = "repeatedcv",
+                      repeats = 3)
+plsFit <- train(Class ~ .,
+                data = training,
+                method = "pls",
+                tuneLength = 15,
+                trControl = ctrl,
+                preProc = c("center","scale"))
 ```
 
-ERROR: lazy loading failed for package 'trajectories'
+Choose different measures of performance using additional arguments to trainControl. summaryFunction is used to pass a function that takes observed and predicted values and estimates some measure of performance. defaultSummary or twoClassSummary. twoClassSummary computes measures specific to two-class problemsn, like the area under the ROC curve, sensitivity, and specificity. Another option is required because ROC curve is based on the predicted class probablilityes. classProbs = TRUE is used to include that.
+
+Because custome performance measures are used, we have to specify what criteria will be optimized. In train, use metric = "ROC" for that.
+
 ```{r}
-install.packages("intervals")
-install.packages("trajectories")
+ctrl <- trainControl(method = "repeatedcv",
+                     repeats = 3,
+                     classProbs = TRUE,
+                     summaryFunction = twoClassSummary)
+plsFit <- train(Class ~ .,
+                data = training,
+                method = "pls",
+                tuneLength = 15,
+                trControl = ctrl,
+                metric = "ROC",
+                preProc = c("center", "scale"))
 ```
 
-Error: package or namespace load failed for 'svDialogs' in loadNamespace(i, c(lib.loc, .libPaths()), versionCheck = vI[[i]]):
- there is no package called 'svGUI'
- 
+Show plsFit
+
 ```{r}
-install.packages("svGUI")
-install.packages("svDialogs")
-```
-ERROR: lazy loading failed for package 'cgam'
-```{r}
-install.packages("cgam")
+plsFit
 ```
 
+Stopping at Pg 5 of the tutorial for the night.

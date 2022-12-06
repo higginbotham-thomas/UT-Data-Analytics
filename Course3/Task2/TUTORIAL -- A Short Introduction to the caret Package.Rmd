@@ -3,7 +3,7 @@ title: "A Short Introduction to the caret Package Tutorial"
 output: html_notebook
 ---
 
-The code in this notebook comes from "A Short Introduction to the caret Package
+This notebook comes from A Short Introduction to the caret Package
 By Max Kuhn, August 6, 2015
 
 install caret:
@@ -123,5 +123,69 @@ Show plsFit
 ```{r}
 plsFit
 ```
+Visualize the results
+```{r}
+plsClasses <- predict(plsFit, newdata = testing)
+str(plsClasses)
+```
+```{r}
+plsProbs <- predict(plsFit, newdata = testing, type = "prob")
+head(plsProbs)
+```
+```{r}
+plot(plsFit)
+```
+plot(plsFit) shows the relationship between the number of PLS components and the resampled estimate of the area under the ROC curve.
 
-Stopping at Pg 5 of the tutorial for the night.
+```{r}
+confusionMatrix(data = plsClasses, testing$Class)
+```
+
+Try training another model
+In this case, a regularized discriminant model
+
+```{r}
+## To illustrate, a custom grid is used
+rdaGrid = data.frame(gamma = (0:4)/4, lambda = 3/4)
+set.seed(123)
+rdaFit <- train(Class ~ .,
+                data = training,
+                method = "rda",
+                tuneGrid = rdaGrid,
+                trControl = ctrl,
+                metric = "ROC")
+```
+
+
+```{r}
+rdaFit
+```
+
+```{r}
+rdaClasses <- predict(rdaFit, newdata = testing)
+```
+
+```{r}
+confusionMatrix(rdaClasses, testing$Class)
+```
+
+The resamples function can be used to collect, summarize and contrast the resampling results.
+
+```{r}
+resamps <- resamples(list(pls = plsFit, rda = rdaFit))
+```
+
+```{r}
+summary(resamps)
+```
+
+Bland-Altman type plot to visualize the results
+```{r}
+xyplot(resamps, what = "BlandAltman")
+```
+```{r}
+diffs <- diff(resamps)
+summary(diffs)
+```
+
+Based on this analysis, the difference between the models is -0.018 ROC units (the RDA model is -.095) and the two–sided p–value for this difference is 0.4128.

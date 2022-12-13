@@ -1,0 +1,93 @@
+---
+title: "Course 3, Task 2.3, Train The Models"
+output: html_notebook
+---
+
+Load the caret library
+
+```{r}
+library(caret)
+```
+
+First, import and become familiar with the training set, "CompleteResponses.csv"
+
+```{r}
+CompleteResponses <- read.csv("CompleteResponses.csv", header=TRUE, sep=",")
+```
+
+Next, perform any necessary pre-processing
+
+```{r}
+#List the attributes within the data set
+
+attributes(CompleteResponses)
+```
+
+```{r}
+#Prints the min, max, mean, median, and quartiles of each attribute
+summary(CompleteResponses)
+```
+
+There do not appear to be any missing values
+
+```{r}
+#Displays the structure of your data set
+str(CompleteResponses)
+```
+
+```{r}
+#Displays the attributes within your data set
+names(CompleteResponses)
+```
+
+```{r}
+#Will print out the instances within that particular column of your data set
+CompleteResponses$elevel
+```
+
+```{r}
+#histogram plot
+hist(CompleteResponses$salary)
+hist(CompleteResponses$age)
+hist(CompleteResponses$elevel)
+hist(CompleteResponses$car)
+hist(CompleteResponses$zipcode)
+hist(CompleteResponses$credit)
+hist(CompleteResponses$brand)
+```
+1. There are more responses from 20-30 than any other age group
+2. There are twice as many BMW owners that any other make of car
+3. More of the responses favor Sony vs. Acer
+4. Otherwise, the frequency for Salary, Education Level, and Zip Code is spread pretty evenly throughout the histogram groups
+
+```{r}
+#scatter (box) plot
+plot(CompleteResponses$salary,CompleteResponses$brand)
+plot(CompleteResponses$age,CompleteResponses$brand)
+plot(CompleteResponses$elevel,CompleteResponses$brand)
+plot(CompleteResponses$car,CompleteResponses$brand)
+plot(CompleteResponses$zipcode,CompleteResponses$brand)
+plot(CompleteResponses$credit,CompleteResponses$brand)
+```
+It appears that there may be a preference for Sony over Acer as the salary of the customer increases.
+
+```{r}
+#normal quintile plot to see if data is normally distributed
+qqnorm(CompleteResponses$salary)
+qqnorm(CompleteResponses$age)
+qqnorm(CompleteResponses$elevel)
+qqnorm(CompleteResponses$car)
+qqnorm(CompleteResponses$zipcode)
+qqnorm(CompleteResponses$credit)
+qqnorm(CompleteResponses$brand)
+```
+The data appears to be normally distributed
+
+Brand (of computer) will be the dependent variable
+
+Now, create the training and test sets using createDataPartition
+```{r}
+#set the seed
+set.seed(123)
+```
+

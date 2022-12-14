@@ -85,9 +85,108 @@ The data appears to be normally distributed
 
 Brand (of computer) will be the dependent variable
 
+```{r}
+#Convert brand to a 2 level factor
+CompleteResponses$brand <- as.factor(CompleteResponses$brand)
+```
+
 Now, create the training and test sets using createDataPartition
 ```{r}
 #set the seed
 set.seed(123)
 ```
 
+```{r}
+#define a 75%/25% train/test split of the dataset
+inTraining <- createDataPartition(CompleteResponses$brand, p=.75, list=FALSE)
+training <- CompleteResponses[inTraining,]
+testing <- CompleteResponses[-inTraining,]
+```
+
+Next, build a model using Stochastic Gradient Boosting (GBM), on the training set with 10-fold cross-validation and an Automatic Tuning Grid. This will be used to predict nominal data (a customer's computer brand preference)
+
+```{r}
+#10 fold cross validation
+fitControl <- trainControl(method = "repeatedcv", number = 10, repeats = 1)
+```
+
+```{r}
+#train the GBM model
+GBMFit1 <- train(brand~., data=training, method="gbm", trControl=fitControl, nTrain=round(nrow(training)*.75))
+```
+
+```{r}
+#training results
+GBMFit1
+```
+
+```{r}
+#use varImp to ascertain how the model priortized each feature in the training
+importance <- varImp(GBMFit1)
+```
+
+```{r}
+importance
+```
+
+The two most important variables, according to the scores from varImp, are salary and age
+
+Now, use Random Forest with 10-fold cross-validation and manually tune 5 different mtry values
+
+```{r}
+rfFit1 <- train(brand~., data = training, method = "rf", trControl=fitControl, tunelength = 5)
+```
+
+```{r}
+rfFit1
+```
+
+Now, ascertain how the model prioritized each feature in the training using varImp
+```{r}
+importance = varImp(rfFit1)
+```
+
+```{r}
+importance
+```
+
+Using Random Forest, the two most important variables are salary and age.
+
+Now, predict product performance:
+
+I will use the Random Forest trained model as this was the one that had both the highest accuracy and Kappa scores. 
+
+```{r}
+#use predict() against the surveyIncomplete data set
+SurveyIncomplete <- read.csv("SurveyIncomplete.csv", header=TRUE, sep=",")
+
+rfClasses <- predict(rfFit1, testing)
+```
+
+```{r}
+#converting rfClasses to numeric to use postResample()
+#rfClasses <- as.numeric(rfClasses)
+```
+
+```{r}
+#Convert brand back to numeric
+CompleteResponses$brand <- as.numeric(CompleteResponses$brand)
+```
+
+```{r}
+metrics <- postResample(rfClasses, testing$brand)
+```
+
+```{r}
+metrics
+```
+
+```{r}
+summary(metrics)
+```
+
+```{r}
+summary(CompleteResponses$brand)
+```
+
+Because the brand values are either 1 or 2 after converting back to numeric, the ground truth will be either 1 or 2, but the prediction will be a decimal between .8347 and .9220. In both examples, the values are more likely to be "Sony", but the model will predict "Sony" more often than occurs in the ground truth, based on a given salary.

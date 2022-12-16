@@ -7,6 +7,7 @@ Load the caret library
 
 ```{r}
 library(caret)
+library(erboost)
 ```
 
 First, import and become familiar with the training set, "CompleteResponses.csv"
@@ -55,10 +56,11 @@ hist(CompleteResponses$zipcode)
 hist(CompleteResponses$credit)
 hist(CompleteResponses$brand)
 ```
-1. There are more responses from 20-30 than any other age group
-2. There are twice as many BMW owners that any other make of car
-3. More of the responses favor Sony vs. Acer
-4. Otherwise, the frequency for Salary, Education Level, and Zip Code is spread pretty evenly throughout the histogram groups
+
+1.  There are more responses from 20-30 than any other age group
+2.  There are twice as many BMW owners that any other make of car
+3.  More of the responses favor Sony vs. Acer
+4.  Otherwise, the frequency for Salary, Education Level, and Zip Code is spread pretty evenly throughout the histogram groups
 
 ```{r}
 #scatter (box) plot
@@ -69,6 +71,7 @@ plot(CompleteResponses$car,CompleteResponses$brand)
 plot(CompleteResponses$zipcode,CompleteResponses$brand)
 plot(CompleteResponses$credit,CompleteResponses$brand)
 ```
+
 It appears that there may be a preference for Sony over Acer as the salary of the customer increases.
 
 ```{r}
@@ -81,6 +84,7 @@ qqnorm(CompleteResponses$zipcode)
 qqnorm(CompleteResponses$credit)
 qqnorm(CompleteResponses$brand)
 ```
+
 The data appears to be normally distributed
 
 Brand (of computer) will be the dependent variable
@@ -91,6 +95,7 @@ CompleteResponses$brand <- as.factor(CompleteResponses$brand)
 ```
 
 Now, create the training and test sets using createDataPartition
+
 ```{r}
 #set the seed
 set.seed(123)
@@ -142,6 +147,7 @@ rfFit1
 ```
 
 Now, ascertain how the model prioritized each feature in the training using varImp
+
 ```{r}
 importance = varImp(rfFit1)
 ```
@@ -154,39 +160,44 @@ Using Random Forest, the two most important variables are salary and age.
 
 Now, predict product performance:
 
-I will use the Random Forest trained model as this was the one that had both the highest accuracy and Kappa scores. 
+I will use the Random Forest trained model as this was the one that had both the highest accuracy and Kappa scores.
 
 ```{r}
 #use predict() against the surveyIncomplete data set
 SurveyIncomplete <- read.csv("SurveyIncomplete.csv", header=TRUE, sep=",")
 
-rfClasses <- predict(rfFit1, testing)
+rfClasses <- predict(rfFit1, SurveyIncomplete)
 ```
 
 ```{r}
-#converting rfClasses to numeric to use postResample()
-#rfClasses <- as.numeric(rfClasses)
-```
-
-```{r}
-#Convert brand back to numeric
-CompleteResponses$brand <- as.numeric(CompleteResponses$brand)
-```
-
-```{r}
+#CompleteResponses <- read.csv("CompleteResponses.csv", header=TRUE, sep=",")
 metrics <- postResample(rfClasses, testing$brand)
 ```
+
+Using postResample to compare predicted values (rfClasses) and observed values (testing$brand) to show the overall agreement rate and Kappa
 
 ```{r}
 metrics
 ```
 
+Accuracy and Kappa are both down from the rfFit1 values where mtry = 4:
+
+Result    Accuracy      Kappa
+rfFit1    0.9197206     0.8295246
+metrics   0.54324980    0.02819453 
+
 ```{r}
-summary(metrics)
+summary(rfClasses)
 ```
+
+37.6% of the responses were for Acer in the predicted set
 
 ```{r}
 summary(CompleteResponses$brand)
 ```
 
-Because the brand values are either 1 or 2 after converting back to numeric, the ground truth will be either 1 or 2, but the prediction will be a decimal between .8347 and .9220. In both examples, the values are more likely to be "Sony", but the model will predict "Sony" more often than occurs in the ground truth, based on a given salary.
+37.8% of the responses were for Acer in the Complete Responses set
+
+Overall, the results are very similar between the predicted and complete responses sets.
+
+

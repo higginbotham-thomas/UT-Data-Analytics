@@ -1,5 +1,5 @@
 ---
-title: "Course 3, Task 2.3, Train The Models"
+title: "Customer Brand Preferences Report"
 output: html_notebook
 ---
 
@@ -7,6 +7,7 @@ Load the caret library
 
 ```{r}
 library(caret)
+library(C50)
 library(erboost)
 ```
 
@@ -136,7 +137,30 @@ importance
 
 The two most important variables, according to the scores from varImp, are salary and age
 
-Now, use Random Forest with 10-fold cross-validation and manually tune 5 different mtry values
+Now, use C5.0 to train a model with 10-fold cross-validation.
+
+```{r}
+C50Fit1 <- train(brand~., data = training, method = "C5.0", trControl=fitControl, verbose=FALSE)
+```
+```{r}
+C50Fit1
+```
+
+Using C5.0, the best results were using trials = 20, model = rules, and winnow = FALSE,
+which is:
+Accuracy    0.9158144  
+Kappa       0.8210332
+
+Now show the most important variables
+```{r}
+importance = varImp(C50Fit1)
+```
+
+```{r}
+importance
+```
+
+Using C5.0, the most important variables are Salary, Age, and Car
 
 ```{r}
 rfFit1 <- train(brand~., data = training, method = "rf", trControl=fitControl, tunelength = 5)
@@ -154,6 +178,14 @@ importance = varImp(rfFit1)
 
 ```{r}
 importance
+```
+
+Using Random Forest, the two most important variables are salary and age.
+
+Now, train a model 
+
+```{r}
+
 ```
 
 Using Random Forest, the two most important variables are salary and age.
@@ -200,4 +232,23 @@ summary(CompleteResponses$brand)
 
 Overall, the results are very similar between the predicted and complete responses sets.
 
+```{r}
+# Add the predicted results to SurveyIncomplete$brand
+SurveyIncomplete$brand <- rfClasses
+```
+
+```{r}
+#Write out the PredictedResponses data frame to csv
+write.csv(SurveyIncomplete,"PredictedResponses.csv")
+```
+
+```{r}
+#combine the CompleteResponses and SurveyIncomplete dataframes
+TotalResponses <- rbind(CompleteResponses, SurveyIncomplete)
+```
+
+```{r}
+#Write out the TotalResponses data frame to csv
+write.csv(TotalResponses,"TotalResponses.csv")
+```
 
